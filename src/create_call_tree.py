@@ -150,7 +150,6 @@ def parse_file(path):
 
 
 def get_sub_name(line):
-    fields = line.split()
 
     if call in line:
         fields = line.split(call)
