@@ -4,6 +4,8 @@ It is not yet mature. Does not consider functions and may fail in some
 nasty cases. Also it does not go recursively into the directories while scans 
 source folder. 
 
+Some resulting .pdf files the program produces are shown in the src folder.
+
 package gui - contains my tries of the python Tkinter, I thought maybe generating
 a tree from the sources, which can be collapsed and expanded as necessary with, maybe search 
 possibilities. Also it would be great to add a feature "show source" of a selected node.
