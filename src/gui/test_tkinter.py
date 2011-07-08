@@ -39,7 +39,7 @@ def main():
     # Same thing, but inserted as first child:
     tree.insert('', 0, 'gallery', text='Applications')
     tree.pack()
-
+    print('Test')
 
 
 #    app = App(root)
