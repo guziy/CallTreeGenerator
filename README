@@ -1,5 +1,5 @@
 This project is for generating call trees for fortran projects(requires graphviz and python)
-Author: Huziy Oleksandr (guziy.sasha@gmail.com)
+Author: Huziy Oleksandr
 It is not yet mature. Does not consider functions and may fail in some 
 nasty cases. Also it does not go recursively into the directories while scans 
 source folder. 
