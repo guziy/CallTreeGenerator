@@ -5,7 +5,11 @@ __author__="huziy"
 __date__ ="$6 juil. 2011 23:08:00$"
 
 
+from Tkconstants import HORIZONTAL
+from Tkinter import Scrollbar
+from Tkinter import Frame
 from Tkinter import *
+from Tkconstants import VERTICAL
 import ttk
 
 class App:
@@ -43,6 +47,36 @@ def main():
 
 
 #    app = App(root)
+    root.mainloop()
+
+
+
+def show_source_tree(head):
+    root = Tk()
+    frame = Frame(root)
+    frame.pack(fill = 'both')
+    tree = ttk.Treeview(frame)
+    
+    #insert root subroutine
+    # @type head Node
+    parent_id = tree.insert('', 'end', '', text = head.name)
+    for child in head.children:
+        child.insert_to_tree(tree, parent_id)
+
+
+
+    
+    #add scrollbar
+    v_scrollbar = Scrollbar(frame, orient = VERTICAL, command = tree.yview)
+    h_scrollbar = Scrollbar(frame, orient = HORIZONTAL, command = tree.xview)
+    tree.configure(yscrollcommand = v_scrollbar.set, xscrollcommand = h_scrollbar.set)
+    
+    v_scrollbar.pack(side = 'right', fill = 'y')
+    h_scrollbar.pack(side = 'bottom', fill = 'x')
+
+
+    tree.pack(fill = 'both')
+    root.geometry("600x600")
     root.mainloop()
 
 

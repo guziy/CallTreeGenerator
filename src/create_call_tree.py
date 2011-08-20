@@ -177,6 +177,7 @@ def write_gv_file(entry_name):
     f.close()
 
     os.system('/usr/local/bin/dot -Tpdf gem.gv > %s.pdf' % entry_name)
+    os.remove('gem.gv')
 #    os.system('/usr/local/bin/circo -Tpng gem.gv > %s.png' % entry_name)
 
 
@@ -216,7 +217,11 @@ def main():
 #    folders = ['../../hs_and_flake_integrated']
     create_relations(folders)
     write_gv_file('itf_phy_vmmprep')
-    show_source_tree(get_node_by_name('surface'))
+
+
+    showTreeUsingTkinter = False #set true only if you have tkinter installed
+    if showTreeUsingTkinter:
+        show_source_tree(get_node_by_name('gemdm'))
 
 
 
