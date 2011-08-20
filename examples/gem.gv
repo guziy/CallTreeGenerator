@@ -1,0 +1,16 @@
+digraph Gem_graph{
+size="100,100";
+itf_phy_vmmprep -> calomeg; 
+itf_phy_vmmprep -> phy_optr; 
+itf_phy_vmmprep -> rpn_comm_allreduce; 
+phycom -> low2up; 
+phycom -> movlev; 
+phycom -> qqexit; 
+itf_phy_vmmprep -> phycom; 
+uv_acg2g -> rpn_comm_xch_halo; 
+itf_phy_uvgridscal -> uv_acg2g; 
+itf_phy_vmmprep -> itf_phy_uvgridscal; 
+itf_phy_vmmprep -> itf_phy_padbuf; 
+itf_phy_vmmprep -> mfottvh; 
+itf_phy_vmmprep -> mfottv; 
+}
