@@ -3,6 +3,7 @@ __date__ ="$5 juil. 2011 14:05:27$"
 
 
 
+from gui.test_tkinter import show_source_tree
 import os
 
 phy_folder = '../../PHY'
@@ -15,22 +16,7 @@ end_subroutine = end + subroutine
 call = 'call '
 
 
-
-class Node():
-    def __init__(self, name = ''):
-        self.name = name
-        self.children = []
-
-    def get_gv_strings(self):
-        lines = []
-        for c in self.children:
-            for line in c.get_gv_strings():
-                if line not in lines:
-                    lines.append(line)
-            line = '%s -> %s; \n' % (self.name, c.name)
-            if line not in lines:
-                lines.append(line)
-        return lines
+from node import Node
 
 
 #to get node object by name
@@ -142,8 +128,8 @@ def parse_file(path):
                         called_name = get_sub_name(call + ' ' + line)
 
                     child = get_node_by_name(called_name)
-                    if not child in parentNode.children:
-                        parentNode.children.append(child)
+                    parentNode.addChild(child)
+
     f.close()
 
 
@@ -229,7 +215,8 @@ def main():
     folders = [phy_folder, dyn_folder] #gem
 #    folders = ['../../hs_and_flake_integrated']
     create_relations(folders)
-    write_gv_file('dynstep')
+    write_gv_file('itf_phy_vmmprep')
+    show_source_tree(get_node_by_name('surface'))
 
 
 
