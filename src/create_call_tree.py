@@ -128,14 +128,10 @@ def parse_file(path):
                 if line_without_spaces == end:
                     break
 
-                if 'readdyn' in path:
-                    print line_without_spaces
 
                 #parse children nodes
                 if call in line:
                     called_name = get_sub_name(line)
-                    if 'readdyn' in path:
-                        print called_name
 
 
                     if called_name in ['vsexp', 'vslog', 'vssqrt', 'vssin', 'vscos', 'vspownn', 'vspown1']:
