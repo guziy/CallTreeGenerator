@@ -13,6 +13,9 @@ subroutine = 'subroutine'
 end = 'end'
 end_subroutine = end + subroutine
 
+interface = 'interface'
+end_interface = end + interface
+
 call = 'call '
 
 
@@ -44,6 +47,11 @@ def is_fixed_form_splited(lines):
 
 
 def next_line(lines, fixed_format = False):
+    '''
+    returns line in lower case without comments
+    if the lines were splitted in the file, the peaces are
+    connected.
+    '''
     line = lines.pop(0)
 
     #treat comments in fixed format file
@@ -77,6 +85,7 @@ def next_line(lines, fixed_format = False):
         pass
 
 
+
     return line
 
 
@@ -104,14 +113,30 @@ def parse_file(path):
                 line = next_line(lines, fixed_format = fixed)
                 line_without_spaces = line.replace(' ', '')
 
+                ##skip interface
+                if line_without_spaces.startswith(interface):
+                    while not line_without_spaces.startswith(end_interface):
+                        line = next_line(lines, fixed_format = fixed)
+                        line_without_spaces = line.replace(' ', '')
+                    line = next_line(lines, fixed_format = fixed)
+                    line_without_spaces = line.replace(' ', '')
+
+
+
 
                 #end of the subroutine or function
                 if line_without_spaces == end:
                     break
 
+                if 'readdyn' in path:
+                    print line_without_spaces
+
                 #parse children nodes
                 if call in line:
                     called_name = get_sub_name(line)
+                    if 'readdyn' in path:
+                        print called_name
+
 
                     if called_name in ['vsexp', 'vslog', 'vssqrt', 'vssin', 'vscos', 'vspownn', 'vspown1']:
                         continue
@@ -216,12 +241,12 @@ def main():
     folders = [phy_folder, dyn_folder] #gem
 #    folders = ['../../hs_and_flake_integrated']
     create_relations(folders)
-    write_gv_file('itf_phy_vmmprep')
+    write_gv_file('indata')
 
 
-    showTreeUsingTkinter = False #set true only if you have tkinter installed
+    showTreeUsingTkinter = True #set true only if you have tkinter installed
     if showTreeUsingTkinter:
-        show_source_tree(get_node_by_name('gemdm'))
+        show_source_tree(get_node_by_name('readdyn'))
 
 
 
