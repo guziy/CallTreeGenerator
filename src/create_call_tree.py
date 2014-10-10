@@ -197,7 +197,7 @@ def write_gv_file(entry_name):
     f.writelines(gvlines)
     f.close()
 
-    os.system('/usr/local/bin/dot -Tpdf gem.gv > %s.pdf' % entry_name)
+    os.system('dot -Tpdf gem.gv > %s.pdf' % entry_name)
     os.remove('gem.gv')
 #    os.system('/usr/local/bin/circo -Tpng gem.gv > %s.png' % entry_name)
 
@@ -234,8 +234,9 @@ def create_relations(folders = []):
 
 
 def main():
-    folders = [phy_folder, dyn_folder] #gem
+#    folders = [phy_folder, dyn_folder] #gem
 #    folders = ['../../hs_and_flake_integrated']
+    folders = ['/home/san/Fortran/oda', ]
     create_relations(folders)
     write_gv_file('indata')
 
