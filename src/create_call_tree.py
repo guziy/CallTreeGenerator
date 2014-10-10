@@ -1,42 +1,39 @@
-__author__="huziy"
-__date__ ="$5 juil. 2011 14:05:27$"
+__author__ = "huziy"
+__date__ = "$5 juil. 2011 14:05:27$"
 
-
-
-from gui.test_tkinter import show_source_tree
 import os
 
 phy_folder = '../../PHY'
 dyn_folder = '../../DYN'
 
-subroutine = 'subroutine'
+subroutine_word = 'subroutine'
+function_word = "function"
 end = 'end'
-end_subroutine = end + subroutine
+end_subroutine = end + subroutine_word
 
 interface = 'interface'
 end_interface = end + interface
 
 call = 'call '
 
-
 from node import Node
 
 
-#to get node object by name
+# to get node object by name
 name_to_node = {}
 
 #get node object by name, create new if does not yet exists
-def get_node_by_name(name = ''):
+def get_node_by_name(name=''):
     if name in name_to_node:
         return name_to_node[name]
     else:
-        node = Node(name = name)
+        node = Node(name=name)
         name_to_node[name] = node
         return node
 
 
 def is_fixed_form_splited(lines):
-    if len(lines) == 0: #if there is no following line
+    if len(lines) == 0:  # if there is no following line
         return False
 
     follow_line = lines[0]
@@ -46,7 +43,7 @@ def is_fixed_form_splited(lines):
     return False
 
 
-def next_line(lines, fixed_format = False):
+def next_line(lines, fixed_format=False):
     '''
     returns line in lower case without comments
     if the lines were splitted in the file, the peaces are
@@ -61,30 +58,37 @@ def next_line(lines, fixed_format = False):
 
     line = line.lower()
 
-    if line.strip().startswith('!'): #skip comments
+    if line.strip().startswith('!'):  #skip comments
         return ''
-    
+
     line = line.strip()
 
     #connect splitted lines
     if not fixed_format:
         line1 = line
+        if "!" in line1:
+            line1 = line1[:line1.index("!")]
+
         while line1.endswith('&'):
             line = lines.pop(0)
+            if "!" in line:
+                line = line[:line.index("!")]
             line1 = line[:-1] + line
         line = line1.strip()
 
-
     if fixed_format:
-        #TODO: do line connecting for the fixed format
+        #Do line connecting for the fixed format
         line1 = line
+        if "!" in line:
+            line1 = line1[:line.index("!")]
+
         while is_fixed_form_splited(lines):
             line = lines.pop(0).strip()
+            if "!" in line:
+                line = line[:line.index("!")]
             line1 += line.strip()[1:]
         line = line1.strip()
         pass
-
-
 
     return line
 
@@ -94,45 +98,42 @@ def parse_file(path):
     #print(path)
     f = open(path)
     lines = f.readlines()
-  
 
     path_lower = path.lower()
     fixed = path_lower.endswith('.ftn') or path_lower.endswith('.f')
     while len(lines) > 0:
-        line = next_line(lines, fixed_format = fixed)
+        line = next_line(lines, fixed_format=fixed)
 
+        the_word = None
+        if line.startswith(subroutine_word) or line.startswith(function_word):
+            the_word = subroutine_word if line.startswith(subroutine_word) else function_word
 
-        if line.startswith(subroutine):
-            sub_name = get_sub_name(line)
+        if the_word is not None:
+
+            sub_name = get_sub_name(line, the_word)
             parentNode = get_node_by_name(sub_name)
 
-
-            line = next_line(lines, fixed_format = fixed)
+            line = next_line(lines, fixed_format=fixed)
             line_without_spaces = line.replace(' ', '')
             while end_subroutine not in line_without_spaces:
-                line = next_line(lines, fixed_format = fixed)
+                line = next_line(lines, fixed_format=fixed)
                 line_without_spaces = line.replace(' ', '')
 
                 ##skip interface
                 if line_without_spaces.startswith(interface):
                     while not line_without_spaces.startswith(end_interface):
-                        line = next_line(lines, fixed_format = fixed)
+                        line = next_line(lines, fixed_format=fixed)
                         line_without_spaces = line.replace(' ', '')
-                    line = next_line(lines, fixed_format = fixed)
+                    line = next_line(lines, fixed_format=fixed)
                     line_without_spaces = line.replace(' ', '')
-
-
-
 
                 #end of the subroutine or function
                 if line_without_spaces == end:
                     break
 
-
                 #parse children nodes
                 if call in line:
                     called_name = get_sub_name(line)
-
 
                     if called_name in ['vsexp', 'vslog', 'vssqrt', 'vssin', 'vscos', 'vspownn', 'vspown1']:
                         continue
@@ -143,9 +144,8 @@ def parse_file(path):
                     if called_name in ['random_number', 'random_seed']:
                         continue
 
-
                     if called_name.strip() == '':
-                        line = next_line(lines, fixed_format = fixed)[1:]
+                        line = next_line(lines, fixed_format=fixed)[1:]
                         called_name = get_sub_name(call + ' ' + line)
 
                     child = get_node_by_name(called_name)
@@ -154,15 +154,11 @@ def parse_file(path):
     f.close()
 
 
-
-
-def get_sub_name(line):
-
+def get_sub_name(line, word=subroutine_word):
     if call in line:
         fields = line.split(call)
     else:
-        fields = line.split(subroutine)
-
+        fields = line.split(word)
 
     s = fields[1]
     if '(' in s:
@@ -170,27 +166,25 @@ def get_sub_name(line):
     else:
         s = s.strip()
 
+    if s.strip() == '':
+        print(line)
 
-    if s.strip() == '': print(line)
     if '!' in s:
-        s = s[0:s.index('!')]
+        s = s[:s.index('!')]
     return s
 
 
-
 def write_gv_file(entry_name):
-
     if name_to_node.has_key(entry_name):
         head = name_to_node[entry_name]
     else:
         print('No subroutine called %s' % entry_name)
         return
 
- 
     gvlines = head.get_gv_strings()
     print len(head.children)
     gvlines.insert(0, 'size=\"100,100\";\n')
-    gvlines.insert(0,'digraph Gem_graph{\n')
+    gvlines.insert(0, 'digraph Gem_graph{\n')
     gvlines.append('}')
 
     f = open('gem.gv', 'w')
@@ -199,53 +193,60 @@ def write_gv_file(entry_name):
 
     os.system('dot -Tpdf gem.gv > %s.pdf' % entry_name)
     os.remove('gem.gv')
+
+
 #    os.system('/usr/local/bin/circo -Tpng gem.gv > %s.png' % entry_name)
 
 
-def create_relations(folders = []):
+def create_relations(folders=None):
     for folder in folders:
         for path in os.listdir(folder):
 
-            if path.startswith('.'): #skip hidden files
+            if path.startswith('.'):  #skip hidden files
                 continue
 
             #skip files of the following types
-            if path.endswith('.cdk'): continue
-            if path.endswith('.cdk90'): continue
-            if path.endswith('.h'): continue
-            if path.endswith('.c'): continue
-            if '#' in path: continue     #skip files with weird names
-            if '.' not in path: continue #skip files without extension
-            if path.endswith('~'): continue #skip autosave files
+            if path.endswith('.cdk'):
+                continue
+            if path.endswith('.cdk90'):
+                continue
+            if path.endswith('.h'):
+                continue
+            if path.endswith('.c'):
+                continue
+            if '#' in path:
+                continue  # skip files with weird names
+            if '.' not in path:
+                continue  #skip files without extension
+            if path.endswith('~'):
+                continue  #skip autosave files
+
 
             #take into account only fortran sources
             ext = path.split('.')[-1].strip()
-            if ext not in ['ftn', 'ftn90', 'f', 'f90', 'incf']: continue
-
+            if ext not in ['ftn', 'ftn90', 'f', 'f90', 'incf']:
+                continue
 
             file_path = os.path.join(folder, path)
 
-            if os.path.isdir(file_path): #do not treat folders
+            if os.path.isdir(file_path):  # do not treat folders
                 continue
 
             parse_file(file_path)
 
 
-
-
 def main():
-#    folders = [phy_folder, dyn_folder] #gem
-#    folders = ['../../hs_and_flake_integrated']
+    #    folders = [phy_folder, dyn_folder] #gem
+    #    folders = ['../../hs_and_flake_integrated']
     folders = ['/home/san/Fortran/oda', ]
     create_relations(folders)
-    write_gv_file('indata')
+    write_gv_file('oda_u2v')
 
-
-    showTreeUsingTkinter = True #set true only if you have tkinter installed
+    showTreeUsingTkinter = False  #set true only if you have tkinter installed
     if showTreeUsingTkinter:
+        from gui.test_tkinter import show_source_tree
+
         show_source_tree(get_node_by_name('readdyn'))
-
-
 
 
 if __name__ == "__main__":
