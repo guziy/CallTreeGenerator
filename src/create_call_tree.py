@@ -202,7 +202,7 @@ def create_relations(folders=None):
     for folder in folders:
         for path in os.listdir(folder):
 
-            if path.startswith('.'):  #skip hidden files
+            if path.startswith('.'):  # skip hidden files
                 continue
 
             #skip files of the following types
@@ -217,9 +217,9 @@ def create_relations(folders=None):
             if '#' in path:
                 continue  # skip files with weird names
             if '.' not in path:
-                continue  #skip files without extension
+                continue  # skip files without extension
             if path.endswith('~'):
-                continue  #skip autosave files
+                continue  # skip autosave files
 
 
             #take into account only fortran sources
@@ -240,7 +240,7 @@ def main():
     #    folders = ['../../hs_and_flake_integrated']
     folders = ['/home/san/Fortran/oda', ]
     create_relations(folders)
-    write_gv_file('oda_u2v')
+    write_gv_file('cnto')
 
     showTreeUsingTkinter = False  #set true only if you have tkinter installed
     if showTreeUsingTkinter:
