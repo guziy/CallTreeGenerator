@@ -10,6 +10,7 @@ subroutine_word = 'subroutine'
 function_word = "function"
 end = 'end'
 end_subroutine = end + subroutine_word
+end_function = end + function_word
 
 interface = 'interface'
 end_interface = end + interface
@@ -95,7 +96,7 @@ def next_line(lines, fixed_format=False):
 
 #parse file to Nodes
 def parse_file(path):
-    #print(path)
+    print(path)
     f = open(path)
     lines = f.readlines()
 
@@ -103,7 +104,7 @@ def parse_file(path):
     fixed = path_lower.endswith('.ftn') or path_lower.endswith('.f')
     while len(lines) > 0:
         line = next_line(lines, fixed_format=fixed)
-
+	print line
         the_word = None
         if line.startswith(subroutine_word) or line.startswith(function_word):
             the_word = subroutine_word if line.startswith(subroutine_word) else function_word
@@ -115,7 +116,7 @@ def parse_file(path):
 
             line = next_line(lines, fixed_format=fixed)
             line_without_spaces = line.replace(' ', '')
-            while end_subroutine not in line_without_spaces:
+            while end_subroutine not in line_without_spaces and end_function not in line_without_spaces:
                 line = next_line(lines, fixed_format=fixed)
                 line_without_spaces = line.replace(' ', '')
 
@@ -131,6 +132,7 @@ def parse_file(path):
                 if line_without_spaces == end:
                     break
 
+		
                 #parse children nodes
                 if call in line:
                     called_name = get_sub_name(line)
@@ -244,7 +246,7 @@ def main():
     folders = ["/gs/project/ugh-612-aa/huziy/Coupling_CRCM_NEMO/NEMO/dev_v3_4_STABLE_2012/NEMOGCM/CONFIG/COUPLED/WORK",]
 
     create_relations(folders)
-    write_gv_file('nemogcm')
+    write_gv_file('nemo_gcm')
 
     showTreeUsingTkinter = False  #set true only if you have tkinter installed
     if showTreeUsingTkinter:
