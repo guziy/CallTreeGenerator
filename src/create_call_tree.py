@@ -18,7 +18,7 @@ end_interface = end + interface
 call = 'call '
 
 from node import Node
-
+import re
 
 # to get node object by name
 name_to_node = {}
@@ -90,7 +90,10 @@ def next_line(lines, fixed_format=False):
             line1 += line.strip()[1:]
         line = line1.strip()
         pass
-
+    
+    
+    line = re.sub(r"\"(.*)\"|'(.*)'", "", line).strip()
+    
     return line
 
 
@@ -104,7 +107,6 @@ def parse_file(path):
     fixed = path_lower.endswith('.ftn') or path_lower.endswith('.f')
     while len(lines) > 0:
         line = next_line(lines, fixed_format=fixed)
-	print line
         the_word = None
         if line.startswith(subroutine_word) or line.startswith(function_word):
             the_word = subroutine_word if line.startswith(subroutine_word) else function_word
@@ -135,6 +137,10 @@ def parse_file(path):
 		
                 #parse children nodes
                 if call in line:
+                    fields = line.split()
+                    if call.strip() not in fields:
+                        continue
+
                     called_name = get_sub_name(line)
 
                     if called_name in ['vsexp', 'vslog', 'vssqrt', 'vssin', 'vscos', 'vspownn', 'vspown1']:
@@ -194,7 +200,7 @@ def write_gv_file(entry_name):
     f.close()
 
     os.system('dot -Tpdf gem.gv > %s.pdf' % entry_name)
-    os.remove('gem.gv')
+#    os.remove('gem.gv')
 
 
 #    os.system('/usr/local/bin/circo -Tpng gem.gv > %s.png' % entry_name)
@@ -243,8 +249,8 @@ def main():
     #folders = ['/home/san/Fortran/oda', ]
     
     ##NEMO
-    folders = ["/gs/project/ugh-612-aa/huziy/Coupling_CRCM_NEMO/NEMO/dev_v3_4_STABLE_2012/NEMOGCM/CONFIG/COUPLED/WORK",]
-
+    #folders = ["/gs/project/ugh-612-aa/huziy/Coupling_CRCM_NEMO/NEMO/dev_v3_4_STABLE_2012/NEMOGCM/CONFIG/COUPLED/WORK",]
+    folders = ["nemo_src"]
     create_relations(folders)
     write_gv_file('nemo_gcm')
 
