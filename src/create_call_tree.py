@@ -224,7 +224,7 @@ def create_relations(folders=None):
 
             #take into account only fortran sources
             ext = path.split('.')[-1].strip()
-            if ext not in ['ftn', 'ftn90', 'f', 'f90', 'incf']:
+            if ext.lower() not in ['ftn', 'ftn90', 'f', 'f90', 'incf']:
                 continue
 
             file_path = os.path.join(folder, path)
@@ -238,9 +238,13 @@ def create_relations(folders=None):
 def main():
     #    folders = [phy_folder, dyn_folder] #gem
     #    folders = ['../../hs_and_flake_integrated']
-    folders = ['/home/san/Fortran/oda', ]
+    #folders = ['/home/san/Fortran/oda', ]
+    
+    ##NEMO
+    folders = ["/gs/project/ugh-612-aa/huziy/Coupling_CRCM_NEMO/NEMO/dev_v3_4_STABLE_2012/NEMOGCM/CONFIG/COUPLED/WORK",]
+
     create_relations(folders)
-    write_gv_file('cnto')
+    write_gv_file('nemogcm')
 
     showTreeUsingTkinter = False  #set true only if you have tkinter installed
     if showTreeUsingTkinter:
