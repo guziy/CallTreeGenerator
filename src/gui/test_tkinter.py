@@ -5,12 +5,12 @@ __author__="huziy"
 __date__ ="$6 juil. 2011 23:08:00$"
 
 
-from Tkconstants import HORIZONTAL
-from Tkinter import Scrollbar
-from Tkinter import Frame
-from Tkinter import *
-from Tkconstants import VERTICAL
-import ttk
+from tkinter.constants import HORIZONTAL
+from tkinter import Scrollbar
+from tkinter import Frame
+from tkinter import *
+from tkinter.constants import VERTICAL
+import tkinter.ttk
 
 class App:
 
@@ -26,7 +26,7 @@ class App:
         self.hi_there.pack(side=LEFT)
 
     def say_hi(self):
-        print "hi there, everyone!"
+        print("hi there, everyone!")
 
 
 
@@ -36,7 +36,7 @@ def main():
 
     frame = Frame(root)
     frame.pack()
-    tree = ttk.Treeview(frame)
+    tree = tkinter.ttk.Treeview(frame)
     # Inserted at the root, program chooses id:
     tree.insert('', 'end', 'widgets', text='Widget Tour')
 
@@ -55,7 +55,7 @@ def show_source_tree(head):
     root = Tk()
     frame = Frame(root)
     frame.pack(fill = 'both')
-    tree = ttk.Treeview(frame)
+    tree = tkinter.ttk.Treeview(frame)
     
     #insert root subroutine
     # @type head Node
@@ -84,4 +84,4 @@ def show_source_tree(head):
 
 if __name__ == "__main__":
     main()
-    print "Hello World"
+    print("Hello World")

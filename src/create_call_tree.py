@@ -183,14 +183,14 @@ def get_sub_name(line, word=subroutine_word):
 
 
 def write_gv_file(entry_name):
-    if name_to_node.has_key(entry_name):
+    if entry_name in name_to_node:
         head = name_to_node[entry_name]
     else:
-        print('No subroutine called %s' % entry_name)
+        print(('No subroutine called %s' % entry_name))
         return
 
     gvlines = head.get_gv_strings()
-    print len(head.children)
+    print(len(head.children))
     gvlines.insert(0, 'size=\"100,100\";\n')
     gvlines.insert(0, 'digraph Gem_graph{\n')
     gvlines.append('}')
@@ -250,9 +250,13 @@ def main():
     
     ##NEMO
     #folders = ["/gs/project/ugh-612-aa/huziy/Coupling_CRCM_NEMO/NEMO/dev_v3_4_STABLE_2012/NEMOGCM/CONFIG/COUPLED/WORK",]
-    folders = ["nemo_src"]
+    # folders = ["nemo_src"]
+
+    # Hostetler offline
+    folders = ["/home/san/Fortran/hostetler_offline"]
+
     create_relations(folders)
-    write_gv_file('nemo_gcm')
+    write_gv_file('lake_water')
 
     showTreeUsingTkinter = False  #set true only if you have tkinter installed
     if showTreeUsingTkinter:
