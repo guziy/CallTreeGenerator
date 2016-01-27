@@ -2,6 +2,8 @@ __author__ = "huziy"
 __date__ = "$5 juil. 2011 14:05:27$"
 
 import os
+import subprocess
+import shutil
 
 phy_folder = '../../PHY'
 dyn_folder = '../../DYN'
@@ -15,7 +17,7 @@ end_function = end + function_word
 interface = 'interface'
 end_interface = end + interface
 
-call = 'call '
+FORTRAN_CALL = 'call '
 
 from node import Node
 import re
@@ -23,7 +25,8 @@ import re
 # to get node object by name
 name_to_node = {}
 
-#get node object by name, create new if does not yet exists
+
+# get node object by name, create new if does not yet exists
 def get_node_by_name(name=''):
     if name in name_to_node:
         return name_to_node[name]
@@ -52,19 +55,19 @@ def next_line(lines, fixed_format=False):
     '''
     line = lines.pop(0)
 
-    #treat comments in fixed format file
+    # treat comments in fixed format file
     if fixed_format:
         if line[0] != ' ' and line[0:8] != '#include':
             return ''
 
     line = line.lower()
 
-    if line.strip().startswith('!'):  #skip comments
+    if line.strip().startswith('!'):  # skip comments
         return ''
 
     line = line.strip()
 
-    #connect splitted lines
+    # connect splitted lines
     if not fixed_format:
         line1 = line
         if "!" in line1:
@@ -78,7 +81,7 @@ def next_line(lines, fixed_format=False):
         line = line1.strip()
 
     if fixed_format:
-        #Do line connecting for the fixed format
+        # Do line connecting for the fixed format
         line1 = line
         if "!" in line:
             line1 = line1[:line.index("!")]
@@ -90,18 +93,20 @@ def next_line(lines, fixed_format=False):
             line1 += line.strip()[1:]
         line = line1.strip()
         pass
-    
-    
+
     line = re.sub(r"\"(.*)\"|'(.*)'", "", line).strip()
-    
+
     return line
 
 
-#parse file to Nodes
+# parse file to Nodes
 def parse_file(path):
     print(path)
-    f = open(path)
-    lines = f.readlines()
+
+    lines = []
+    with open(path, errors="ignore") as f:
+        for l in f:
+            lines.append(l)
 
     path_lower = path.lower()
     fixed = path_lower.endswith('.ftn') or path_lower.endswith('.f')
@@ -130,15 +135,14 @@ def parse_file(path):
                     line = next_line(lines, fixed_format=fixed)
                     line_without_spaces = line.replace(' ', '')
 
-                #end of the subroutine or function
+                # end of the subroutine or function
                 if line_without_spaces == end:
                     break
 
-		
-                #parse children nodes
-                if call in line:
+                # parse children nodes
+                if FORTRAN_CALL in line:
                     fields = line.split()
-                    if call.strip() not in fields:
+                    if FORTRAN_CALL.strip() not in fields:
                         continue
 
                     called_name = get_sub_name(line)
@@ -154,17 +158,15 @@ def parse_file(path):
 
                     if called_name.strip() == '':
                         line = next_line(lines, fixed_format=fixed)[1:]
-                        called_name = get_sub_name(call + ' ' + line)
+                        called_name = get_sub_name(FORTRAN_CALL + ' ' + line)
 
                     child = get_node_by_name(called_name)
                     parentNode.addChild(child)
 
-    f.close()
-
 
 def get_sub_name(line, word=subroutine_word):
-    if call in line:
-        fields = line.split(call)
+    if FORTRAN_CALL in line:
+        fields = line.split(FORTRAN_CALL)
     else:
         fields = line.split(word)
 
@@ -191,16 +193,24 @@ def write_gv_file(entry_name):
 
     gvlines = head.get_gv_strings()
     print(len(head.children))
-    gvlines.insert(0, 'size=\"100,100\";\n')
+    gvlines.insert(0, 'size=\"400,600\";\n')
     gvlines.insert(0, 'digraph Gem_graph{\n')
     gvlines.append('}')
 
-    f = open('gem.gv', 'w')
-    f.writelines(gvlines)
-    f.close()
+    with open('gem.gv', 'w') as f:
+        f.writelines(gvlines)
 
-    os.system('dot -Tpdf gem.gv > %s.pdf' % entry_name)
-#    os.remove('gem.gv')
+    dot_guess_path = "/usr/local/bin/dot"
+    if os.path.exists(dot_guess_path):
+        subprocess.Popen([dot_guess_path, "-Tpdf", "gem.gv", ">", "{}.pdf".format(entry_name)])
+    else:
+        subprocess.Popen(["dot", "-Tpdf", "gem.gv", ">", "{}.pdf".format(entry_name)])
+
+
+
+    # subprocess.call(["dot"], shell=False)
+
+#    os.remove('gem.gv')  
 
 
 #    os.system('/usr/local/bin/circo -Tpng gem.gv > %s.png' % entry_name)
@@ -213,7 +223,7 @@ def create_relations(folders=None):
             if path.startswith('.'):  # skip hidden files
                 continue
 
-            #skip files of the following types
+            # skip files of the following types
             if path.endswith('.cdk'):
                 continue
             if path.endswith('.cdk90'):
@@ -229,8 +239,7 @@ def create_relations(folders=None):
             if path.endswith('~'):
                 continue  # skip autosave files
 
-
-            #take into account only fortran sources
+            # take into account only fortran sources
             ext = path.split('.')[-1].strip()
             if ext.lower() not in ['ftn', 'ftn90', 'f', 'f90', 'incf']:
                 continue
@@ -246,19 +255,22 @@ def create_relations(folders=None):
 def main():
     #    folders = [phy_folder, dyn_folder] #gem
     #    folders = ['../../hs_and_flake_integrated']
-    #folders = ['/home/san/Fortran/oda', ]
-    
+    # folders = ['/home/san/Fortran/oda', ]
+
     ##NEMO
-    #folders = ["/gs/project/ugh-612-aa/huziy/Coupling_CRCM_NEMO/NEMO/dev_v3_4_STABLE_2012/NEMOGCM/CONFIG/COUPLED/WORK",]
+    # folders = ["/gs/project/ugh-612-aa/huziy/Coupling_CRCM_NEMO/NEMO/dev_v3_4_STABLE_2012/NEMOGCM/CONFIG/COUPLED/WORK",]
     # folders = ["nemo_src"]
 
     # Hostetler offline
-    folders = ["/home/san/Fortran/hostetler_offline"]
+    # folders = ["/home/san/Fortran/hostetler_offline"]
 
+
+    # NEMO 1
+    folders = ["/Users/san/Downloads/WORK"]
     create_relations(folders)
-    write_gv_file('lake_water')
+    write_gv_file('nemo_gcm')
 
-    showTreeUsingTkinter = False  #set true only if you have tkinter installed
+    showTreeUsingTkinter = False  # set true only if you have tkinter installed
     if showTreeUsingTkinter:
         from gui.test_tkinter import show_source_tree
 
