@@ -100,7 +100,7 @@ def next_line(lines, fixed_format=False):
 
 
 # parse file to Nodes
-def parse_file(path):
+def parse_file(path, ignore_nodes=()):
     print(path)
 
     lines = []
@@ -127,7 +127,7 @@ def parse_file(path):
                 line = next_line(lines, fixed_format=fixed)
                 line_without_spaces = line.replace(' ', '')
 
-                ##skip interface
+                # skip interface
                 if line_without_spaces.startswith(interface):
                     while not line_without_spaces.startswith(end_interface):
                         line = next_line(lines, fixed_format=fixed)
@@ -155,6 +155,10 @@ def parse_file(path):
 
                     if called_name in ['random_number', 'random_seed']:
                         continue
+
+                    if called_name in ignore_nodes:
+                        continue
+
 
                     if called_name.strip() == '':
                         line = next_line(lines, fixed_format=fixed)[1:]
@@ -217,7 +221,7 @@ def write_gv_file(entry_name, depth=None):
         subprocess.Popen(["dot", "-Tpdf", "gem.gv", ">", "{}.pdf".format(entry_name)])
 
 
-def create_relations(folders=None, depth=None):
+def create_relations(folders=None, depth=None, ignore_nodes=()):
     for folder in folders:
         for path in os.listdir(folder):
 
@@ -250,7 +254,7 @@ def create_relations(folders=None, depth=None):
             if os.path.isdir(file_path):  # do not treat folders
                 continue
 
-            parse_file(file_path)
+            parse_file(file_path, ignore_nodes=ignore_nodes)
 
 
 def main():
@@ -258,7 +262,7 @@ def main():
     #    folders = ['../../hs_and_flake_integrated']
     # folders = ['/home/san/Fortran/oda', ]
 
-    ##NEMO
+    # NEMO
     # folders = ["/gs/project/ugh-612-aa/huziy/Coupling_CRCM_NEMO/NEMO/dev_v3_4_STABLE_2012/NEMOGCM/CONFIG/COUPLED/WORK",]
     # folders = ["nemo_src"]
 
@@ -268,8 +272,9 @@ def main():
 
     # NEMO 1
     folders = ["/Users/san/Downloads/WORK"]
-    create_relations(folders)
-    write_gv_file('nemo_gcm', depth=2)
+    nemo_ignore_nodes = ["abort", "timing_start", "timing_stop", "prt_ctl", "ctl_stop"]
+    create_relations(folders, ignore_nodes=nemo_ignore_nodes)
+    write_gv_file('stp', depth=1)
 
     showTreeUsingTkinter = False  # set true only if you have tkinter installed
     if showTreeUsingTkinter:
