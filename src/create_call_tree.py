@@ -161,7 +161,7 @@ def parse_file(path):
                         called_name = get_sub_name(FORTRAN_CALL + ' ' + line)
 
                     child = get_node_by_name(called_name)
-                    parentNode.addChild(child)
+                    parentNode.add_child(child)
 
 
 def get_sub_name(line, word=subroutine_word):
@@ -184,16 +184,25 @@ def get_sub_name(line, word=subroutine_word):
     return s
 
 
-def write_gv_file(entry_name):
+def write_gv_file(entry_name, depth=None):
     if entry_name in name_to_node:
         head = name_to_node[entry_name]
+        """
+        :type head: Node
+        """
     else:
-        print(('No subroutine called %s' % entry_name))
+        print('No subroutine called {}'.format(entry_name))
         return
+
+    # Crop the details after the given depth
+    if depth is not None:
+        head.crop_deeper_than(depth=depth)
+
+    print(len(head.children))
 
     gvlines = head.get_gv_strings()
     print(len(head.children))
-    gvlines.insert(0, 'size=\"400,600\";\n')
+    gvlines.insert(0, 'size=\"20,20\";\n')
     gvlines.insert(0, 'digraph Gem_graph{\n')
     gvlines.append('}')
 
@@ -202,21 +211,13 @@ def write_gv_file(entry_name):
 
     dot_guess_path = "/usr/local/bin/dot"
     if os.path.exists(dot_guess_path):
-        subprocess.Popen([dot_guess_path, "-Tpdf", "gem.gv", ">", "{}.pdf".format(entry_name)])
+        subprocess.call([dot_guess_path, "-Tpdf", "gem.gv"],
+                        stdout=open("{}.pdf".format(entry_name), "wb"))
     else:
         subprocess.Popen(["dot", "-Tpdf", "gem.gv", ">", "{}.pdf".format(entry_name)])
 
 
-
-    # subprocess.call(["dot"], shell=False)
-
-#    os.remove('gem.gv')  
-
-
-#    os.system('/usr/local/bin/circo -Tpng gem.gv > %s.png' % entry_name)
-
-
-def create_relations(folders=None):
+def create_relations(folders=None, depth=None):
     for folder in folders:
         for path in os.listdir(folder):
 
@@ -268,7 +269,7 @@ def main():
     # NEMO 1
     folders = ["/Users/san/Downloads/WORK"]
     create_relations(folders)
-    write_gv_file('nemo_gcm')
+    write_gv_file('nemo_gcm', depth=2)
 
     showTreeUsingTkinter = False  # set true only if you have tkinter installed
     if showTreeUsingTkinter:
