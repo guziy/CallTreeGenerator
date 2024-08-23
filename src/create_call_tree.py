@@ -4,6 +4,7 @@ __date__ = "$5 juil. 2011 14:05:27$"
 import os
 import subprocess
 import shutil
+from pathlib import Path
 
 phy_folder = '../../PHY'
 dyn_folder = '../../DYN'
@@ -104,12 +105,11 @@ def parse_file(path, ignore_nodes=()):
     print(path)
 
     lines = []
-    with open(path, errors="ignore") as f:
-        for l in f:
-            lines.append(l)
+    with path.open(errors="ignore") as f:
+        lines = f.readlines()
 
-    path_lower = path.lower()
-    fixed = path_lower.endswith('.ftn') or path_lower.endswith('.f')
+    
+    fixed = path.name.lower().endswith('.ftn') or path.name.lower().endswith('.f')
     while len(lines) > 0:
         line = next_line(lines, fixed_format=fixed)
         the_word = None
@@ -213,48 +213,54 @@ def write_gv_file(entry_name, depth=None):
     with open('gem.gv', 'w') as f:
         f.writelines(gvlines)
 
-    dot_guess_path = "/usr/local/bin/dot"
-    if os.path.exists(dot_guess_path):
-        subprocess.call([dot_guess_path, "-Tpdf", "gem.gv"],
-                        stdout=open("{}.pdf".format(entry_name), "wb"))
-    else:
-        subprocess.Popen(["dot", "-Tpdf", "gem.gv", ">", "{}.pdf".format(entry_name)])
+    dot_guess_path = Path("/usr/local/bin/dot")
+
+    depth = "full" if depth is None else depth
+    out_path = Path(f"{entry_name}_dpth_{depth}.pdf")
+    
+    with out_path.open("wb") as out_stream:
+        exe_pth = str(dot_guess_path) if dot_guess_path.exists() else "dot"
+        subprocess.Popen([exe_pth, "-Tpdf", "gem.gv"], 
+                         stdout=out_stream)
 
 
-def create_relations(folders=None, depth=None, ignore_nodes=()):
+def create_relations(folders=None, ignore_nodes=()):
     for folder in folders:
-        for path in os.listdir(folder):
+        folder = Path(folder)
+        print(f"Processing {folder}")
+        for path in folder.iterdir():
 
-            if path.startswith('.'):  # skip hidden files
+            if path.name.startswith('.'):  # skip hidden files
                 continue
+
+            if path.is_dir():  # treat folders
+                create_relations(folders=[path, ], ignore_nodes=ignore_nodes)
+                continue
+
 
             # skip files of the following types
-            if path.endswith('.cdk'):
+            if path.name.endswith('.cdk'):
                 continue
-            if path.endswith('.cdk90'):
+            if path.name.endswith('.cdk90'):
                 continue
-            if path.endswith('.h'):
+            if path.name.endswith('.h'):
                 continue
-            if path.endswith('.c'):
+            if path.name.endswith('.c'):
                 continue
-            if '#' in path:
+            if '#' in path.name:
                 continue  # skip files with weird names
-            if '.' not in path:
+            if '.' not in path.name:
                 continue  # skip files without extension
-            if path.endswith('~'):
+            if path.name.endswith('~'):
                 continue  # skip autosave files
 
             # take into account only fortran sources
-            ext = path.split('.')[-1].strip()
+            ext = path.name.split('.')[-1].strip()
             if ext.lower() not in ['ftn', 'ftn90', 'f', 'f90', 'incf']:
                 continue
-
-            file_path = os.path.join(folder, path)
-
-            if os.path.isdir(file_path):  # do not treat folders
-                continue
-
-            parse_file(file_path, ignore_nodes=ignore_nodes)
+            
+            
+            parse_file(path, ignore_nodes=ignore_nodes)
 
 
 def main():
@@ -271,16 +277,25 @@ def main():
 
 
     # NEMO 1
-    folders = ["/Users/san/Downloads/WORK"]
+    # folders = ["/Users/san/Downloads/WORK"]
+    # nemo_ignore_nodes = ["abort", "timing_start", "timing_stop", "prt_ctl", "ctl_stop"]
+    # create_relations(folders, ignore_nodes=nemo_ignore_nodes)
+    # write_gv_file('stp', depth=1)
+
+
+    # NEMO 2
+    folders = ["/home/olh001/Fortran/concepts_surge/NEMOGCM/CONFIG/build.intel_u2.ppp5/eORCA12_CMC_surge/BLD/ppsrc/"]
     nemo_ignore_nodes = ["abort", "timing_start", "timing_stop", "prt_ctl", "ctl_stop"]
     create_relations(folders, ignore_nodes=nemo_ignore_nodes)
-    write_gv_file('stp', depth=1)
+    write_gv_file('stp', depth=2)
 
-    showTreeUsingTkinter = False  # set true only if you have tkinter installed
+
+
+    showTreeUsingTkinter = True  # set true only if you have tkinter installed
     if showTreeUsingTkinter:
         from gui.test_tkinter import show_source_tree
 
-        show_source_tree(get_node_by_name('readdyn'))
+        show_source_tree(get_node_by_name('nemo_gcm'))
 
 
 if __name__ == "__main__":
