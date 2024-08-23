@@ -55,7 +55,8 @@ def main():
 def show_source_tree(head: Node):
     root = Tk()
     frame = Frame(root)
-    frame.pack(fill = 'both')
+
+    frame.pack(fill = 'both', expand=True)
     tree = tkinter.ttk.Treeview(frame)
     
     #insert root subroutine
@@ -77,7 +78,7 @@ def show_source_tree(head: Node):
     h_scrollbar.pack(side = 'bottom', fill = 'x')
 
 
-    tree.pack(fill = 'both')
+    tree.pack(fill='both', expand=True)
     root.geometry("600x600")
     root.mainloop()
 
