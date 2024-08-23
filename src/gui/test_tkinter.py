@@ -11,6 +11,7 @@ from tkinter import Frame
 from tkinter import *
 from tkinter.constants import VERTICAL
 import tkinter.ttk
+from node import Node
 
 class App:
 
@@ -51,7 +52,7 @@ def main():
 
 
 
-def show_source_tree(head):
+def show_source_tree(head: Node):
     root = Tk()
     frame = Frame(root)
     frame.pack(fill = 'both')
@@ -59,7 +60,8 @@ def show_source_tree(head):
     
     #insert root subroutine
     # @type head Node
-    parent_id = tree.insert('', 'end', '', text = head.name)
+    print(head.name)
+    parent_id = tree.insert('', 'end', text = head.name)
     for child in head.children:
         child.insert_to_tree(tree, parent_id)
 

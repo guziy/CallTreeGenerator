@@ -31,7 +31,7 @@ class Node(object):
         self.children.remove(child)
 
     def insert_to_tree(self, tree, parent_id):
-        current_id = tree.insert(parent_id, 'end', '', text=self.name)
+        current_id = tree.insert(parent_id, 'end', text=self.name)
         for c in self.children:
             c.insert_to_tree(tree, current_id)
 
